@@ -1,0 +1,74 @@
+@import '@fontsource-variable/archivo/wdth.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-page text-ink font-sans antialiased;
+    font-variation-settings: normal;
+  }
+  :focus-visible {
+    outline: 2px solid #20242C;
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Cifras estilo etiqueta de precio de góndola: condensadas y pesadas */
+  .figure {
+    font-stretch: 72%;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+  .panel {
+    @apply rounded-xl bg-white shadow-card;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-ink text-white hover:bg-ink-soft;
+  }
+  .btn-ghost {
+    @apply btn text-ink hover:bg-page;
+  }
+  .btn-outline {
+    @apply btn border border-line bg-white text-ink hover:bg-page;
+  }
+  .input {
+    @apply w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink placeholder:text-faint focus:border-ink focus:outline-none;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1 text-xs font-semibold transition-colors;
+  }
+  .th {
+    @apply px-3 py-2.5 text-left text-xs font-semibold text-muted;
+  }
+  .td {
+    @apply px-3 py-3 align-middle text-sm;
+  }
+}
+
+.scroll-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+.scroll-thin::-webkit-scrollbar-thumb { background: #CDD1D8; border-radius: 6px; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+
+/* Recharts: quitar contorno de foco en sectores */
+.recharts-wrapper *:focus { outline: none; }
