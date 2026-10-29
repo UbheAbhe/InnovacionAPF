@@ -32,10 +32,10 @@ export function WeekdayChart({ values, highlight, format, height = 200 }: { valu
           <CartesianGrid vertical={false} stroke={CHART.grid} />
           <XAxis dataKey="day" {...axisProps} />
           <YAxis {...axisProps} width={44} tickFormatter={(v) => format(v)} />
-          <Tooltip cursor={{ fill: '#F1F3F5' }} content={<ChartTooltip format={(v) => format(v)} />} />
+          <Tooltip cursor={{ fill: CHART.hover }} content={<ChartTooltip format={(v) => format(v)} />} />
           <Bar dataKey="value" name="Promedio" radius={[4, 4, 0, 0]} isAnimationActive={false}>
             {data.map((d) => (
-              <Cell key={d.i} fill={d.i === highlight ? CHART.forecast : '#C9CED6'} />
+              <Cell key={d.i} fill={d.i === highlight ? CHART.forecast : CHART.barSoft} />
             ))}
           </Bar>
         </BarChart>
@@ -55,8 +55,8 @@ export function HourlyChart({ data, currentSlot, format, height = 220 }: { data:
             <CartesianGrid vertical={false} stroke={CHART.grid} />
             <XAxis dataKey="label" {...axisProps} interval={1} />
             <YAxis {...axisProps} width={44} tickFormatter={(v) => format(v)} />
-            <Tooltip cursor={{ fill: '#F1F3F5' }} content={<ChartTooltip format={(v) => format(v)} />} />
-            <Bar dataKey="actual" name="Vendido" fill={CHART.ink} radius={[3, 3, 0, 0]} isAnimationActive={false} />
+            <Tooltip cursor={{ fill: CHART.hover }} content={<ChartTooltip format={(v) => format(v)} />} />
+            <Bar dataKey="actual" name="Vendido" fill={CHART.bar} radius={[3, 3, 0, 0]} isAnimationActive={false} />
             <Line dataKey="expected" name="Esperado" stroke={CHART.forecast} strokeDasharray="4 3" strokeWidth={2} dot={false} isAnimationActive={false} />
             {currentSlot >= 0 && currentSlot < HOUR_LABELS.length && (
               <ReferenceLine x={HOUR_LABELS[currentSlot]} stroke={CHART.muted} strokeDasharray="3 3" label={{ value: 'Ahora', position: 'insideTopRight', fontSize: 10, fill: CHART.muted }} />
@@ -64,7 +64,7 @@ export function HourlyChart({ data, currentSlot, format, height = 220 }: { data:
           </ComposedChart>
         </ResponsiveContainer>
       </div>
-      <ChartLegend items={[{ label: 'Vendido', color: CHART.ink }, { label: 'Esperado por franja', color: CHART.forecast, dashed: true }]} />
+      <ChartLegend items={[{ label: 'Vendido', color: CHART.bar }, { label: 'Esperado por franja', color: CHART.forecast, dashed: true }]} />
     </div>
   );
 }
@@ -82,8 +82,8 @@ export function DonutChart({ data, centerLabel, centerValue, format, height = 20
     <div className="relative" style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
-          <Pie data={visible.length ? visible : [{ name: 'Sin datos', value: 1, color: '#E2E5EA' }]} dataKey="value" nameKey="name" innerRadius="62%" outerRadius="92%" paddingAngle={visible.length > 1 ? 2 : 0} stroke="none" isAnimationActive={false}>
-            {(visible.length ? visible : [{ name: 'Sin datos', value: 1, color: '#E2E5EA' }]).map((d) => (
+          <Pie data={visible.length ? visible : [{ name: 'Sin datos', value: 1, color: '#DEE1E8' }]} dataKey="value" nameKey="name" innerRadius="62%" outerRadius="92%" paddingAngle={visible.length > 1 ? 2 : 0} stroke="none" isAnimationActive={false}>
+            {(visible.length ? visible : [{ name: 'Sin datos', value: 1, color: '#DEE1E8' }]).map((d) => (
               <Cell key={d.name} fill={d.color} />
             ))}
           </Pie>
@@ -135,8 +135,8 @@ export function HBarChart({
         <BarChart data={data} layout="vertical" margin={{ top: 4, right: 12, bottom: 0, left: 4 }}>
           <CartesianGrid horizontal={false} stroke={CHART.grid} />
           <XAxis type="number" {...axisProps} tickFormatter={(v) => format(v)} />
-          <YAxis type="category" dataKey="name" {...axisProps} width={118} tick={{ fontSize: 11, fill: '#3A3F4A' }} />
-          <Tooltip cursor={{ fill: '#F1F3F5' }} content={<ChartTooltip format={(v) => format(v)} />} />
+          <YAxis type="category" dataKey="name" {...axisProps} width={118} tick={{ fontSize: 11, fill: '#2A3466' }} />
+          <Tooltip cursor={{ fill: CHART.hover }} content={<ChartTooltip format={(v) => format(v)} />} />
           <Bar
             dataKey="value"
             name="Valor"
@@ -158,7 +158,7 @@ export function HBarChart({
 }
 
 /** Ingresos diarios (área). */
-export function TrendArea({ data, format, height = 220, color = CHART.ink }: { data: { label: string; value: number; lost?: number }[]; format: (v: number) => string; height?: number; color?: string }) {
+export function TrendArea({ data, format, height = 220, color = CHART.actual }: { data: { label: string; value: number; lost?: number }[]; format: (v: number) => string; height?: number; color?: string }) {
   return (
     <div style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">

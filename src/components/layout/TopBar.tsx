@@ -4,7 +4,7 @@ import { SimulatorControls, VirtualClock } from './SimulatorControls';
 
 export function TopBar() {
   return (
-    <header className="sticky top-0 z-30 border-b border-line bg-white/95 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-line bg-white">
       {/* Móvil */}
       <div className="flex items-center gap-3 px-4 pt-3 lg:hidden">
         <BrandMark size={30} />

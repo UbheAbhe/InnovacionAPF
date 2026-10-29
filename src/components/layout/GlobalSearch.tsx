@@ -179,7 +179,7 @@ export function GlobalSearch() {
             </div>
             <div className="mt-4 flex items-center justify-between border-t border-line pt-3">
               <span className="text-xs text-muted">{results.length} productos coinciden</span>
-              <button onClick={() => dispatch({ type: 'SET_FILTERS', patch: { query: '', categoryId: 'all', risk: 'all' } })} className="text-xs font-semibold text-brand hover:underline">
+              <button onClick={() => dispatch({ type: 'SET_FILTERS', patch: { query: '', categoryId: 'all', risk: 'all' } })} className="text-xs font-semibold text-brand-dark hover:underline">
                 Limpiar filtros
               </button>
             </div>

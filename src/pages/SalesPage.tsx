@@ -2,7 +2,7 @@ import { CircleDollarSign, Download, Percent, Receipt, ScanBarcode, ShoppingCart
 import { useMemo, useState } from 'react';
 import { DonutChart, HBarChart, HourlyChart, PieLegend, TrendArea } from '@/components/charts/SimpleCharts';
 import { PageHeader } from '@/components/layout/AppShell';
-import { Kpi } from '@/components/ui/Kpi';
+import { Kpi, KpiStrip } from '@/components/ui/Kpi';
 import { Panel } from '@/components/ui/Panel';
 import { ProductAvatar } from '@/components/ui/ProductAvatar';
 import { Segmented } from '@/components/ui/Segmented';
@@ -18,7 +18,7 @@ import { matchesFilters } from '@/store/hooks';
 import { useStore } from '@/store/StoreProvider';
 
 const TYPE_STYLE: Record<MovementType, string> = {
-  VENTA: 'bg-[#E8F0FB] text-[#235BA8]',
+  VENTA: 'bg-[#E8EBF6] text-navy',
   ENTRADA: 'bg-riskBg-bajo text-riskText-bajo',
   REPOSICION: 'bg-tag-soft text-ink',
   MERMA: 'bg-riskBg-critico text-riskText-critico',
@@ -73,7 +73,7 @@ export default function SalesPage() {
         description="Métricas de las ventas simuladas, caja rápida para simular ventas y registro completo de movimientos exportable a Excel (US7)."
       />
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+      <KpiStrip className="grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
         <Kpi label="Ventas de hoy" value={moneyCompact(revenueToday)} sub={`${integer(unitsToday)} un. · ${number(kgToday)} kg`} icon={CircleDollarSign} tone="brand" />
         <Kpi label="Margen bruto hoy" value={moneyCompact(marginToday)} sub={`${percent(revenueToday ? marginToday / revenueToday : 0, 1)} sobre ventas`} icon={Percent} />
         <Kpi label="Últimos 7 días" value={moneyCompact(last7)} sub={`${signedPercent(prev7 ? last7 / prev7 - 1 : 0)} vs. 7 días previos`} icon={TrendingUp} tone={last7 >= prev7 ? 'bajo' : 'alto'} />
@@ -85,7 +85,7 @@ export default function SalesPage() {
           sub={lastClose ? `${lastClose.skusOut} SKU en cero (${formatDayShort(lastClose.date)})` : 'Cierra un día en el simulador'}
           icon={Receipt}
         />
-      </div>
+      </KpiStrip>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-3">
         <QuickPos />
@@ -187,7 +187,7 @@ function QuickPos() {
         <input className="input num w-24 text-lg font-bold" type="number" min={0} step={p.unit === 'kg' ? 0.1 : 1} value={amount} onChange={(e) => setAmount(Math.max(0, Number(e.target.value)))} aria-label="Cantidad" />
         <Segmented<number> value={steps.includes(amount) ? amount : -1} onChange={setAmount} options={steps.map((s) => ({ value: s, label: `${number(s)}` }))} ariaLabel="Cantidad rápida" />
       </div>
-      <button className="btn-primary mt-4 w-full" onClick={sell} disabled={amount <= 0}>
+      <button className="btn-brand mt-4 w-full" onClick={sell} disabled={amount <= 0}>
         <ShoppingCart size={16} aria-hidden /> Cobrar {money(amount * p.price)}
       </button>
     </Panel>

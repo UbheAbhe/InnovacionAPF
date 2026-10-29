@@ -92,7 +92,7 @@ export default function ProductsPage() {
             <button className="btn-outline" onClick={exportCsv}>
               <Download size={16} aria-hidden /> CSV
             </button>
-            <button className="btn-primary" onClick={() => openMovement()}>
+            <button className="btn-brand" onClick={() => openMovement()}>
               <Plus size={16} aria-hidden /> Registrar movimiento
             </button>
           </>
@@ -150,7 +150,7 @@ export default function ProductsPage() {
                         <td className="td pl-5">
                           <div className="flex items-center gap-3">
                             <ProductAvatar product={p} category={c} />
-                            <div className="min-w-0">
+                            <div className="min-w-0 max-w-[230px]">
                               <Link to={`/analisis?p=${p.id}`} className="block truncate font-semibold hover:underline">
                                 {p.name}
                               </Link>
@@ -161,16 +161,18 @@ export default function ProductsPage() {
                           </div>
                         </td>
                         <td className="td">
+                          <div className="min-w-[180px]">
                           <div className="flex items-center justify-between gap-2 text-xs">
-                            <span className="num font-semibold text-ink">
+                            <span className="num whitespace-nowrap font-semibold text-ink">
                               {qty(p.stockGondola, p.unit)} <span className="font-normal text-faint">/ {number(p.gondolaCapacity)}</span>
                             </span>
                             <ShelfBadge status={i.shelfStatus} size="xs" />
                           </div>
                           <StockBar pct={i.gondolaPct} status={i.shelfStatus} className="mt-1.5" />
-                          <div className="mt-1 text-[11px] text-muted">Se vacía: {gondolaWhen(i, today, p)}</div>
+                          <div className="mt-1 whitespace-nowrap text-[11px] text-muted">Se vacía: {gondolaWhen(i, today, p)}</div>
+                          </div>
                         </td>
-                        <td className="td num text-right font-semibold">{qty(p.stockAlmacen, p.unit)}</td>
+                        <td className="td num whitespace-nowrap text-right font-semibold">{qty(p.stockAlmacen, p.unit)}</td>
                         <td className="td num text-right">
                           {number(i.avgDaily7)}
                           <div className="text-[11px] text-muted">{money(i.avgDaily7 * p.price)}</div>

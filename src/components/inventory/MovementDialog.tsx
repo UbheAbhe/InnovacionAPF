@@ -167,7 +167,7 @@ export function MovementDialog({
           </select>
         </label>
 
-        <div className="flex items-center gap-3 rounded-xl bg-page p-3">
+        <div className="flex items-center gap-3 rounded-md bg-page p-3">
           <ProductAvatar product={p} category={categoryById[p.categoryId]} size={40} />
           <div className="grid flex-1 grid-cols-2 gap-2 text-sm">
             <div>

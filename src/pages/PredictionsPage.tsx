@@ -7,7 +7,7 @@ import { dayWord, orderWhen, packText, stockoutSpan, stockoutWhen } from '@/comp
 import { PageHeader } from '@/components/layout/AppShell';
 import { AiTag, RiskBadge } from '@/components/ui/Badges';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { Kpi } from '@/components/ui/Kpi';
+import { Kpi, KpiStrip } from '@/components/ui/Kpi';
 import { Panel } from '@/components/ui/Panel';
 import { ProductAvatar } from '@/components/ui/ProductAvatar';
 import { Segmented } from '@/components/ui/Segmented';
@@ -84,19 +84,19 @@ export default function PredictionsPage() {
             <button className="btn-outline" onClick={exportCsv}>
               <Download size={16} aria-hidden /> CSV
             </button>
-            <button className="btn-primary" disabled={toOrder.length === 0} onClick={() => openOrder(toOrder.map((p) => ({ productId: p.id, qty: insights[p.id].suggestedOrderQty })))}>
+            <button className="btn-brand" disabled={toOrder.length === 0} onClick={() => openOrder(toOrder.map((p) => ({ productId: p.id, qty: insights[p.id].suggestedOrderQty })))}>
               <Truck size={16} aria-hidden /> Generar {toOrder.length} pedidos sugeridos
             </button>
           </>
         }
       />
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <KpiStrip className="grid-cols-2 lg:grid-cols-4">
         <Kpi label="Pedidos sugeridos para hoy" value={toOrder.length} sub={`Costo estimado ${money(orderCost)}`} icon={Truck} tone={toOrder.length ? 'medio' : 'default'} />
         <Kpi label="Se agotan en ≤ 3 días" value={soon} sub="Considera pedidos en camino" icon={Hourglass} tone={soon ? 'critico' : 'bajo'} />
         <Kpi label="Prob. media de quiebre" value={probability(avgProb)} sub="Antes de la próxima reposición" icon={BrainCircuit} tone={avgProb > 0.2 ? 'alto' : 'bajo'} />
         <Kpi label="Pedidos en camino" value={pending.length} sub="Desde el centro de distribución" icon={CalendarClock} />
-      </div>
+      </KpiStrip>
 
       <Panel
         className="mt-4"
@@ -161,7 +161,7 @@ export default function PredictionsPage() {
         <>
           <div className="panel hidden overflow-hidden lg:block">
             <div className="scroll-thin overflow-x-auto">
-              <table className="w-full min-w-[1240px]">
+              <table className="w-full min-w-[1100px]">
                 <thead className="border-b border-line bg-page/60">
                   <tr>
                     <th className="th pl-5">Producto</th>
@@ -282,7 +282,7 @@ function PredictionRow({ p, i, today }: { p: Product; i: ProductInsight; today: 
       <td className="td pl-5">
         <div className="flex items-center gap-3">
           <ProductAvatar product={p} category={categoryById[p.categoryId]} />
-          <div className="min-w-0">
+          <div className="min-w-0 max-w-[230px]">
             <Link to={`/analisis?p=${p.id}`} className="block truncate font-semibold hover:underline">
               {p.name}
             </Link>
@@ -307,7 +307,7 @@ function PredictionRow({ p, i, today }: { p: Product; i: ProductInsight; today: 
         <div className="num text-[11px] text-muted">{stockoutWhen(i, today)}</div>
       </td>
       <td className="td">
-        <span className={`num whitespace-nowrap text-sm font-semibold ${i.orderInDays === 0 ? 'text-brand' : ''}`}>{orderWhen(i, today)}</span>
+        <span className={`num whitespace-nowrap text-sm font-semibold ${i.orderInDays === 0 ? 'text-brand-dark' : ''}`}>{orderWhen(i, today)}</span>
       </td>
       <td className="td">
         {i.restockDate ? (

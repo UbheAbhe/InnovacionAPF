@@ -9,7 +9,7 @@ import { dayWord, gondolaWhen, orderWhen, packText, stockoutSpan, stockoutWhen }
 import { PageHeader } from '@/components/layout/AppShell';
 import { FilterChip } from '@/components/layout/GlobalSearch';
 import { AiTag, RiskBadge, ShelfBadge } from '@/components/ui/Badges';
-import { Kpi } from '@/components/ui/Kpi';
+import { Kpi, KpiStrip } from '@/components/ui/Kpi';
 import { Panel } from '@/components/ui/Panel';
 import { ProductAvatar } from '@/components/ui/ProductAvatar';
 import { Segmented } from '@/components/ui/Segmented';
@@ -186,13 +186,13 @@ function GroupView({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+      <KpiStrip className="grid-cols-2 lg:grid-cols-5 max-lg:[&>*:last-child:nth-child(odd)]:col-span-2">
         <Kpi label="Ventas de hoy" value={moneyCompact(s.revenueToday)} sub={`Esperado: ${moneyCompact(s.expectedRevenueToday)}`} />
         <Kpi label={`Pronóstico 7 días (${unitWord})`} value={metric === 'revenue' ? moneyCompact(next7) : number(next7)} sub={`${signedPercent(growth)} vs. últimos 7 días`} tone={growth > 0.03 ? 'bajo' : growth < -0.03 ? 'alto' : 'default'} />
         <Kpi label="Productos en riesgo" value={`${s.riskCounts.critico + s.riskCounts.alto}/${s.count}`} tone={s.riskCounts.critico ? 'critico' : 'default'} sub={`${s.outOfShelf} góndolas vacías`} />
         <Kpi label="Valor del inventario" value={moneyCompact(s.stockValue)} sub={`A precio de venta: ${moneyCompact(s.retailValue)}`} />
         <Kpi label="Error del pronóstico" value={`${number(s.avgMape)} %`} sub="MAPE promedio (backtest 7 días)" tone={s.avgMape <= 20 ? 'bajo' : 'medio'} />
-      </div>
+      </KpiStrip>
 
       <Panel title={isStore ? 'Ventas de toda la tienda' : `Ventas de la categoría`} subtitle={`Histórico de ${range} días, ajuste del modelo y pronóstico a ${state.settings.horizonDays} días · ${unitWord}`} actions={<AiTag />}>
         <ForecastChart data={series} format={fmt} height={300} />
@@ -361,14 +361,14 @@ function ProductView({ product: p, insight: i, metric, range, onBack }: { produc
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+      <KpiStrip className="grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
         <Kpi label="Consumo promedio diario" value={`${number(i.avgDaily7)} ${u}`} sub={`28 días: ${number(i.avgDaily28)} · tendencia ${signedPercent(i.trendWeekly)}/sem`} />
         <Kpi label="Tiempo para agotarse" value={stockoutSpan(i)} sub={`Agota: ${stockoutWhen(i, today)}`} tone={i.risk} />
         <Kpi label="Reabastecimiento estimado" value={i.restockDate ? dayWord(i.restockDate, today) : '—'} sub={i.restockSource === 'pedido' ? 'Pedido en camino' : i.orderInDays === 0 ? 'Si se pide hoy' : `Pedir: ${orderWhen(i, today)}`} tone={i.gapBeforeRestock && i.onHand > 0 ? 'critico' : 'default'} />
         <Kpi label="Pedido sugerido" value={i.suggestedOrderQty ? `${number(i.suggestedOrderQty)} ${u}` : '—'} sub={i.suggestedOrderQty ? `${packText(p, i.suggestedPacks)} · ${orderWhen(i, today)}` : 'No requerido'} tone="brand" />
         <Kpi label="Probabilidad de quiebre" value={probability(i.stockoutProbability)} sub="Antes de la próxima reposición" tone={i.risk} />
         <Kpi label="Góndola" value={`${Math.round(i.gondolaPct * 100)} %`} sub={`Se vacía: ${gondolaWhen(i, today, p)}`} tone={i.shelfStatus === 'critico' ? 'critico' : i.shelfStatus === 'alerta' ? 'medio' : 'bajo'} />
-      </div>
+      </KpiStrip>
 
       <div className="grid gap-4 lg:grid-cols-5">
         <Panel className="lg:col-span-3" title="Demanda: histórico y pronóstico" subtitle={`${range} días de historia + ${state.settings.horizonDays} días de pronóstico · ${metric === 'revenue' ? 'S/' : u}`} actions={<AiTag />}>
@@ -435,7 +435,7 @@ function ProductView({ product: p, insight: i, metric, range, onBack }: { produc
           </div>
         )}
         <div className="border-t border-line px-5 py-2.5 text-right">
-          <Link to="/ventas" className="text-xs font-semibold text-brand hover:underline">
+          <Link to="/ventas" className="text-xs font-semibold text-brand-dark hover:underline">
             Ver kardex completo →
           </Link>
         </div>

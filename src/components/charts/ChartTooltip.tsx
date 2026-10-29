@@ -59,7 +59,7 @@ export function ChartLegend({ items }: { items: { label: string; color: string; 
 }
 
 export const axisProps = {
-  tick: { fontSize: 11, fill: '#8A909C' },
+  tick: { fontSize: 11, fill: '#5B6270' },
   tickLine: false,
   axisLine: false,
 } as const;

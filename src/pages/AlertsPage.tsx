@@ -17,7 +17,7 @@ const SEVERITY: Record<AlertSeverity, { label: string; bar: string; chip: string
   critico: { label: 'Crítico', bar: 'bg-risk-critico', chip: 'bg-riskBg-critico text-riskText-critico' },
   alto: { label: 'Alto', bar: 'bg-risk-alto', chip: 'bg-riskBg-alto text-riskText-alto' },
   medio: { label: 'Medio', bar: 'bg-risk-medio', chip: 'bg-riskBg-medio text-riskText-medio' },
-  info: { label: 'Info', bar: 'bg-[#3B7DD8]', chip: 'bg-[#E8F0FB] text-[#235BA8]' },
+  info: { label: 'Info', bar: 'bg-navy', chip: 'bg-[#E8EBF6] text-navy' },
 };
 
 const KIND_ICON: Record<AlertKind, typeof PackageX> = {

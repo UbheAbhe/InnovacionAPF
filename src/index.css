@@ -13,7 +13,7 @@
     font-variation-settings: normal;
   }
   :focus-visible {
-    outline: 2px solid #20242C;
+    outline: 2px solid #E8461E;
     outline-offset: 2px;
   }
   @media (prefers-reduced-motion: reduce) {
@@ -25,9 +25,16 @@
 }
 
 @layer components {
+  /* Rótulo de sección: Archivo condensado y pesado, como la señalética de la tienda */
+  .display {
+    font-stretch: 82%;
+    font-weight: 800;
+    letter-spacing: -0.012em;
+    line-height: 1.05;
+  }
   /* Cifras estilo etiqueta de precio de góndola: condensadas y pesadas */
   .figure {
-    font-stretch: 72%;
+    font-stretch: 74%;
     font-weight: 800;
     letter-spacing: -0.01em;
     font-variant-numeric: tabular-nums;
@@ -37,22 +44,26 @@
     font-variant-numeric: tabular-nums;
   }
   .panel {
-    @apply rounded-xl bg-white shadow-card;
+    @apply rounded-lg border border-line bg-white;
   }
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-3.5 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-primary {
     @apply btn bg-ink text-white hover:bg-ink-soft;
+  }
+  /* Acción principal de la pantalla: naranja 3A */
+  .btn-brand {
+    @apply btn bg-brand-dark text-white hover:bg-[#B3330F];
   }
   .btn-ghost {
     @apply btn text-ink hover:bg-page;
   }
   .btn-outline {
-    @apply btn border border-line bg-white text-ink hover:bg-page;
+    @apply btn border border-line bg-white text-ink hover:border-ink/30 hover:bg-page;
   }
   .input {
-    @apply w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink placeholder:text-faint focus:border-ink focus:outline-none;
+    @apply w-full rounded-md border border-line bg-white px-3 py-2 text-sm text-ink placeholder:text-faint focus:border-ink focus:outline-none focus:ring-2 focus:ring-brand/20;
   }
   .chip {
     @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1 text-xs font-semibold transition-colors;
@@ -66,7 +77,7 @@
 }
 
 .scroll-thin::-webkit-scrollbar { width: 6px; height: 6px; }
-.scroll-thin::-webkit-scrollbar-thumb { background: #CDD1D8; border-radius: 6px; }
+.scroll-thin::-webkit-scrollbar-thumb { background: #C9CDD8; border-radius: 6px; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
 

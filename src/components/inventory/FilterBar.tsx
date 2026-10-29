@@ -44,7 +44,7 @@ export function FilterBar({ count, total }: { count: number; total: number }) {
           )}
         </span>
         {any && (
-          <button onClick={() => dispatch({ type: 'SET_FILTERS', patch: { query: '', categoryId: 'all', risk: 'all' } })} className="chip border-transparent text-brand hover:underline">
+          <button onClick={() => dispatch({ type: 'SET_FILTERS', patch: { query: '', categoryId: 'all', risk: 'all' } })} className="chip border-transparent text-brand-dark hover:underline">
             <X size={12} aria-hidden /> Limpiar
           </button>
         )}

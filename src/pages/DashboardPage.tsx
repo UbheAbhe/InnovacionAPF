@@ -7,17 +7,20 @@ import { useActions } from '@/components/inventory/ActionsProvider';
 import { gondolaWhen, stockoutWhen } from '@/components/inventory/labels';
 import { PageHeader } from '@/components/layout/AppShell';
 import { AiTag, RiskBadge, RiskDot, ShelfBadge } from '@/components/ui/Badges';
-import { Kpi } from '@/components/ui/Kpi';
+import { Kpi, KpiStrip } from '@/components/ui/Kpi';
 import { Panel } from '@/components/ui/Panel';
 import { ProductAvatar } from '@/components/ui/ProductAvatar';
 import { StockBar } from '@/components/ui/StockBar';
 import { buildSeries, hourlyToday, summarize } from '@/engine/aggregate';
 import { hourSlot } from '@/engine/intraday';
-import { categoryColor, RISK_COLOR, RISK_LABEL, RISK_ORDER, SHELF_COLOR, SHELF_LABEL } from '@/lib/colors';
+import { categoryColor, RISK_COLOR, RISK_LABEL, RISK_ORDER, SHELF_LABEL } from '@/lib/colors';
 import { toDateKey } from '@/lib/dates';
 import { axisMoney, integer, money, moneyCompact, number, percent, qty } from '@/lib/format';
 import { useStore } from '@/store/StoreProvider';
 
+
+const SHELF_TEXT = { critico: '#A11D1D', alerta: '#755800', optimo: '#14703A' } as const;
+const SHELF_BOX = { critico: 'border-risk-critico/25 bg-riskBg-critico', alerta: 'border-risk-medio/40 bg-riskBg-medio', optimo: 'border-risk-bajo/25 bg-riskBg-bajo' } as const;
 export default function DashboardPage() {
   const { state, insights, alerts, categories, categoryById } = useStore();
   const { openMovement } = useActions();
@@ -62,31 +65,29 @@ export default function DashboardPage() {
             <Link to="/alertas" className="btn-outline">
               <Bell size={16} aria-hidden /> Alertas
             </Link>
-            <button className="btn-primary" onClick={() => openMovement()}>
+            <button className="btn-brand" onClick={() => openMovement()}>
               <Plus size={16} aria-hidden /> Registrar movimiento
             </button>
           </>
         }
       />
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+      <KpiStrip className="grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
         <Kpi label="Ventas de hoy" value={moneyCompact(s.revenueToday)} sub={<>Esperado al cierre: <strong className="text-ink">{moneyCompact(s.expectedRevenueToday)}</strong></>} icon={CircleDollarSign} tone="brand" onClick={() => navigate('/ventas')} />
         <Kpi label="Productos en riesgo" value={`${atRisk}/${s.count}`} sub={`${s.riskCounts.critico} críticos · ${s.riskCounts.alto} altos`} icon={TriangleAlert} tone={atRisk > 0 ? 'critico' : 'bajo'} onClick={() => navigate('/prediccion')} />
         <Kpi label="Góndolas vacías" value={integer(s.outOfShelf)} sub={`Tasa de quiebre: ${percent(s.outOfShelf / Math.max(1, s.count), 1)}`} icon={PackageX} tone={s.outOfShelf > 0 ? 'alto' : 'bajo'} onClick={() => navigate('/productos')} />
         <Kpi label="Ventas perdidas hoy" value={money(lostTodayAmount)} sub={`Acumulado simulación: ${money(state.lost.amount)}`} icon={ShoppingCart} tone={lostTodayAmount > 0 ? 'critico' : 'default'} />
         <Kpi label="Pedidos sugeridos hoy" value={integer(s.ordersNeeded)} sub={`${pendingOrders} pedidos en camino`} icon={Truck} tone={s.ordersNeeded > 0 ? 'medio' : 'default'} onClick={() => navigate('/prediccion')} />
         <Kpi label="Error del pronóstico" value={`${number(s.avgMape)} %`} sub={<>MAPE promedio · meta ≤ 20 %</>} icon={Gauge} tone={s.avgMape <= 20 ? 'bajo' : 'medio'} />
-      </div>
+      </KpiStrip>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-3">
         <Panel title="Semáforo de góndola" subtitle="Rojo ≤ 30 % · Ámbar 31–60 % · Verde > 60 % de la capacidad">
           <div className="grid grid-cols-3 gap-2">
             {(['critico', 'alerta', 'optimo'] as const).map((k) => (
-              <div key={k} className="rounded-xl p-3" style={{ background: `${SHELF_COLOR[k]}14` }}>
-                <div className="figure text-3xl" style={{ color: SHELF_COLOR[k] }}>
-                  {s.shelfCounts[k]}
-                </div>
-                <div className="mt-1 text-[11px] font-semibold text-ink-soft">{SHELF_LABEL[k]}</div>
+              <div key={k} className={`rounded-md border p-3 ${SHELF_BOX[k]}`}>
+                <div className="figure text-[34px]" style={{ color: SHELF_TEXT[k] }}>{s.shelfCounts[k]}</div>
+                <div className="mt-2 text-[11px] font-semibold text-ink-soft">{SHELF_LABEL[k]}</div>
               </div>
             ))}
           </div>
@@ -140,13 +141,13 @@ export default function DashboardPage() {
 
       <div className="mt-4 grid gap-4 lg:grid-cols-3">
         <Panel className="lg:col-span-2" title="Ventas por franja horaria (hoy)" subtitle="Venta real frente a la distribución esperada del día · S/">
-          <HourlyChart data={hourly} currentSlot={hourSlot(new Date(state.now))} format={axisMoney} />
+          <HourlyChart data={hourly} currentSlot={hourSlot(new Date(state.now))} format={axisMoney} height={340} />
         </Panel>
         <Panel
           title="Prioridades"
           subtitle={`${alerts.length} alertas activas`}
           actions={
-            <Link to="/alertas" className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline">
+            <Link to="/alertas" className="inline-flex items-center gap-1 text-xs font-semibold text-brand-dark hover:underline">
               Ver todas <ArrowRight size={13} aria-hidden />
             </Link>
           }
@@ -179,13 +180,13 @@ export default function DashboardPage() {
           subtitle="Últimos 21 días y próximos 7 · S/ · tendencia lineal con estacionalidad semanal"
           actions={<AiTag />}
         >
-          <ForecastChart data={series} format={axisMoney} />
+          <ForecastChart data={series} format={axisMoney} height={380} />
         </Panel>
         <Panel
           title="Próximos agotamientos"
           subtitle="Según la proyección de consumo y pedidos en camino"
           actions={
-            <Link to="/prediccion" className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline">
+            <Link to="/prediccion" className="inline-flex items-center gap-1 text-xs font-semibold text-brand-dark hover:underline">
               <BrainCircuit size={13} aria-hidden /> Módulo predictivo
             </Link>
           }

@@ -6,7 +6,7 @@ export default function NotFoundPage() {
   return (
     <div className="panel">
       <EmptyState icon={MapPinOff} title="Esta sección no existe">
-        <Link to="/" className="font-semibold text-brand hover:underline">
+        <Link to="/" className="font-semibold text-brand-dark hover:underline">
           Volver al dashboard
         </Link>
       </EmptyState>
