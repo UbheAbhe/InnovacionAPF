@@ -1,3 +1,4 @@
+import { BackendStatusPill } from './BackendStatusPill';
 import { BrandMark } from './Brand';
 import { GlobalSearch } from './GlobalSearch';
 import { SimulatorControls, VirtualClock } from './SimulatorControls';
@@ -18,6 +19,7 @@ export function TopBar() {
           <GlobalSearch />
         </div>
         <div className="ml-auto hidden items-center gap-4 lg:flex">
+          <BackendStatusPill />
           <VirtualClock />
           <SimulatorControls />
         </div>

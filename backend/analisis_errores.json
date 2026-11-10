@@ -1,0 +1,35 @@
+[
+  {
+    "sku": "3A-BEB-022",
+    "producto": "Cerveza Pilsen 650 ml",
+    "categoria": "Bebidas",
+    "fecha": "2026-10-31",
+    "real": 82.0,
+    "predicho": 46.73,
+    "residuo": 35.27,
+    "tipo_error": "Subestimación",
+    "hipotesis": "Pico extraordinario de fin de mes / fin de semana con compra masiva de reposición."
+  },
+  {
+    "sku": "3A-BEB-020",
+    "producto": "Agua San Luis 625 ml",
+    "categoria": "Bebidas",
+    "fecha": "2026-11-08",
+    "real": 90.0,
+    "predicho": 62.79,
+    "residuo": 27.21,
+    "tipo_error": "Subestimación",
+    "hipotesis": "Pico extraordinario de fin de mes / fin de semana con compra masiva de reposición."
+  },
+  {
+    "sku": "3A-LAC-008",
+    "producto": "Leche Gloria azul 400 g",
+    "categoria": "Lácteos y huevos",
+    "fecha": "2026-10-24",
+    "real": 70.0,
+    "predicho": 47.92,
+    "residuo": 22.08,
+    "tipo_error": "Subestimación",
+    "hipotesis": "Pico extraordinario de fin de mes / fin de semana con compra masiva de reposición."
+  }
+]

@@ -1,6 +1,7 @@
 import { BrainCircuit, CalendarClock, ChevronDown, Download, Hourglass, PackageCheck, PackageSearch, Truck, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { MLInferenceButton } from '@/components/inventory/MLInferenceDialog';
 import { useActions } from '@/components/inventory/ActionsProvider';
 import { FilterBar } from '@/components/inventory/FilterBar';
 import { dayWord, orderWhen, packText, stockoutSpan, stockoutWhen } from '@/components/inventory/labels';
@@ -81,6 +82,7 @@ export default function PredictionsPage() {
         description="Para cada producto: tiempo promedio hasta el agotamiento, fecha estimada de reabastecimiento, pedido sugerido y nivel de riesgo de desabastecimiento. Se recalcula con cada venta o cambio de stock."
         actions={
           <>
+            <MLInferenceButton />
             <button className="btn-outline" onClick={exportCsv}>
               <Download size={16} aria-hidden /> CSV
             </button>
