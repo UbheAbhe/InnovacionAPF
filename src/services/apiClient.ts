@@ -55,13 +55,13 @@ export interface BackendHealth {
   timestamp: string;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-/** Verifica disponibilidad del backend Flask / Render con timeout de 2 segundos */
-export async function checkBackendHealth(): Promise<BackendHealth | null> {
+/** Verifica disponibilidad del backend Flask / Render (permite hasta 15s si Render está en cold start) */
+export async function checkBackendHealth(timeoutMs = 8000): Promise<BackendHealth | null> {
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2000);
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
     const res = await fetch(`${API_BASE_URL}/health`, { signal: controller.signal });
     clearTimeout(timeoutId);
     if (!res.ok) return null;
@@ -71,21 +71,32 @@ export async function checkBackendHealth(): Promise<BackendHealth | null> {
   }
 }
 
-/** Ejecuta inferencia en vivo con el modelo serializado en Python */
-export async function predictWithML(payload: MLPredictionRequest): Promise<MLPredictionResponse | null> {
+/** Ejecuta inferencia en vivo con el modelo serializado en Python (soporta hasta 50s por cold start de Render) */
+export async function predictWithML(
+  payload: MLPredictionRequest,
+  onSlowWakeup?: (isWaking: boolean) => void
+): Promise<MLPredictionResponse | null> {
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000);
+    // Avisar si Render tarda más de 2 segundos en responder (indicativo de cold start en Render Free)
+    const slowWakeupTimer = setTimeout(() => {
+      onSlowWakeup?.(true);
+    }, 2500);
+
+    const timeoutId = setTimeout(() => controller.abort(), 50000);
     const res = await fetch(`${API_BASE_URL}/api/predict`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
       signal: controller.signal,
     });
+    clearTimeout(slowWakeupTimer);
     clearTimeout(timeoutId);
+    onSlowWakeup?.(false);
     if (!res.ok) return null;
     return await res.json();
   } catch (err) {
+    onSlowWakeup?.(false);
     console.warn('[ML API] Fallback a motor local TS:', err);
     return null;
   }

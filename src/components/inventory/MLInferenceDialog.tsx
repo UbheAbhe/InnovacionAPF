@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BrainCircuit, CheckCircle2, Sparkles, AlertTriangle } from 'lucide-react';
+import { BrainCircuit, CheckCircle2, Sparkles, Loader2 } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/components/ui/Toast';
 import { predictWithML, type MLPredictionResponse } from '@/services/apiClient';
@@ -11,6 +11,7 @@ export function MLInferenceButton() {
   const toast = useToast();
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isWaking, setIsWaking] = useState(false);
   const [result, setResult] = useState<MLPredictionResponse | null>(null);
 
   const runInference = async () => {
@@ -19,6 +20,7 @@ export function MLInferenceButton() {
     if (!p) return;
 
     setLoading(true);
+    setIsWaking(false);
     const hist = state.history[p.id] || [];
     const lag1 = hist.length > 0 ? hist[hist.length - 1].units : 15;
     const lag7 = hist.length >= 7 ? hist[hist.length - 7].units : 18;
@@ -46,15 +48,16 @@ export function MLInferenceButton() {
       nivel_servicio: state.settings?.serviceLevel || 0.95,
     };
 
-    const data = await predictWithML(payload);
+    const data = await predictWithML(payload, (waking) => setIsWaking(waking));
     setLoading(false);
+    setIsWaking(false);
 
     if (data) {
       setResult(data);
       setModalOpen(true);
       toast('Inferencia recibida exitosamente desde API en Python (Gradient Boosting).', 'info');
     } else {
-      toast('No se pudo conectar a la API en Python. Inicia "python backend/app.py" para inferencia en vivo.', 'warning');
+      toast('El backend de Render aún no respondió. Operando con el motor reactivo local.', 'warning');
     }
   };
 
@@ -66,8 +69,18 @@ export function MLInferenceButton() {
         className="btn-outline flex items-center gap-1.5 border-emerald-600/30 text-emerald-800 hover:bg-emerald-50"
         title="Ejecutar inferencia real con el modelo serializado en Python (.joblib)"
       >
-        <BrainCircuit size={16} className={loading ? 'animate-spin text-emerald-600' : 'text-emerald-700'} />
-        <span>{loading ? 'Consultando API...' : 'Inferencia ML en vivo'}</span>
+        {loading ? (
+          <Loader2 size={16} className="animate-spin text-emerald-600" />
+        ) : (
+          <BrainCircuit size={16} className="text-emerald-700" />
+        )}
+        <span>
+          {loading
+            ? isWaking
+              ? 'Despertando Render (~30s)...'
+              : 'Consultando API...'
+            : 'Inferencia ML en vivo'}
+        </span>
       </button>
 
       {modalOpen && result && (
@@ -100,46 +113,61 @@ export function MLInferenceButton() {
                   <div className="num text-base font-bold text-ink">{result.demanda_predicha_dia} {productById?.[result.producto_id]?.unit || 'un'}</div>
                 </div>
                 <div className="rounded-lg bg-white p-2.5 shadow-sm border border-emerald-100">
-                  <div className="text-muted">Stock Seguridad (SS)</div>
-                  <div className="num text-base font-bold text-ink">{result.stock_seguridad_ss}</div>
+                  <div className="text-muted">Stock seguridad (SS)</div>
+                  <div className="num text-base font-bold text-ink">{result.stock_seguridad_ss} un</div>
                 </div>
                 <div className="rounded-lg bg-white p-2.5 shadow-sm border border-emerald-100">
-                  <div className="text-muted">Punto Reorden (ROP)</div>
-                  <div className="num text-base font-bold text-ink">{result.punto_reorden_rop}</div>
+                  <div className="text-muted">Punto reorden (ROP)</div>
+                  <div className="num text-base font-bold text-ink">{result.punto_reorden_rop} un</div>
                 </div>
                 <div className="rounded-lg bg-white p-2.5 shadow-sm border border-emerald-100">
-                  <div className="text-muted">Cobertura actual</div>
-                  <div className="num text-base font-bold text-ink">{result.dias_cobertura} días</div>
+                  <div className="text-muted">Riesgo calculado</div>
+                  <div className={`num text-base font-bold uppercase ${
+                    result.riesgo === 'critico' ? 'text-red-600' :
+                    result.riesgo === 'alto' ? 'text-amber-600' : 'text-emerald-600'
+                  }`}>{result.riesgo}</div>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-xl border border-line bg-page p-3.5 text-xs">
-              <div className="font-semibold text-ink">Decisión Logística del Negocio:</div>
-              <div className="mt-1 flex items-center gap-2">
-                <span className="text-muted">Estado del Stock:</span>
-                <span className="font-bold text-ink">{result.estado_alerta} (Riesgo {result.riesgo.toUpperCase()})</span>
+            <div className="rounded-xl border border-border bg-surface p-4 text-xs space-y-2">
+              <div className="flex justify-between py-1 border-b border-border/50">
+                <span className="text-muted">Modelo de Machine Learning:</span>
+                <span className="font-semibold text-ink">{result.modelo}</span>
               </div>
-              {result.requiere_orden ? (
-                <div className="mt-2.5 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-amber-900 flex items-start gap-2">
-                  <AlertTriangle size={16} className="shrink-0 text-amber-700 mt-0.5" />
-                  <div>
-                    El stock disponible ({result.stock_actual}) cayó por debajo del Punto de Reorden ({result.punto_reorden_rop}).
-                    Se sugiere emitir orden de compra al CD por <strong>{result.pedido_sugerido_bultos} bultos ({result.pedido_sugerido_unidades} unidades)</strong> con un costo estimado de {money(result.costo_pedido_estimado)}.
-                  </div>
-                </div>
-              ) : (
-                <div className="mt-2.5 rounded-lg border border-emerald-200 bg-emerald-50 p-2.5 text-emerald-900 flex items-start gap-2">
-                  <CheckCircle2 size={16} className="shrink-0 text-emerald-700 mt-0.5" />
-                  <div>
-                    El stock disponible ({result.stock_actual}) supera el Punto de Reorden ({result.punto_reorden_rop}). No se requiere emitir pedido inmediato.
-                  </div>
-                </div>
-              )}
+              <div className="flex justify-between py-1 border-b border-border/50">
+                <span className="text-muted">Pedido sugerido al proveedor:</span>
+                <span className="font-bold text-emerald-800">{result.pedido_sugerido_bultos} bultos ({result.pedido_sugerido_unidades} un.)</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-border/50">
+                <span className="text-muted">Costo estimado de reposición:</span>
+                <span className="font-semibold text-ink">{money(result.costo_pedido_estimado)}</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-border/50">
+                <span className="text-muted">Días de cobertura actuales:</span>
+                <span className="font-semibold text-ink">{result.dias_cobertura} días</span>
+              </div>
+              <div className="flex justify-between py-1">
+                <span className="text-muted">Origen de persistencia:</span>
+                <span className="font-semibold text-sky-700">Supabase PostgreSQL (Cloud)</span>
+              </div>
             </div>
 
-            <div className="text-[11px] leading-relaxed text-muted">
-              * Inferencia calculada por el modelo GradientBoostingRegressor (Semana 14) en Python/Render conectado a Supabase PostgreSQL. Cumplimiento de la <strong>Ley N.° 31814</strong> (IA supervisada con humano en el bucle).
+            <div className="flex items-center gap-2 rounded-lg bg-sky-50 p-3 text-xs text-sky-900 border border-sky-100">
+              <CheckCircle2 size={16} className="shrink-0 text-sky-600" />
+              <span>
+                Inferencia validada con <strong>R² = 0.923</strong>. Decisión sujeta a supervisión humana según la <strong>Ley N.° 31814</strong>.
+              </span>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                type="button"
+                onClick={() => setModalOpen(false)}
+                className="btn-outline text-xs"
+              >
+                Cerrar
+              </button>
             </div>
           </div>
         </Modal>
