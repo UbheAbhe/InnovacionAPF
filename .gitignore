@@ -6,3 +6,8 @@ dist/
 !.env.example
 .vercel
 *.tsbuildinfo
+
+__pycache__/
+*.pyc
+.venv/
+backend/.env

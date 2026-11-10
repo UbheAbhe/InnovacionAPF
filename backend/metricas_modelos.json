@@ -1,0 +1,53 @@
+{
+  "fecha_entrenamiento": "2026-11-09T20:22:48.240475",
+  "target": "unidades_vendidas_diarias",
+  "meta_negocio": "MAPE <= 16.0%",
+  "modelo_seleccionado": "Gradient Boosting Regressor",
+  "tabla_comparativa": [
+    {
+      "Modelo": "Línea Base 1 (Promedio)",
+      "Semana": "-",
+      "Train RMSE": "-",
+      "Test RMSE": 16.35,
+      "Test MAE": 11.41,
+      "Test R²": -0.02,
+      "Test MAPE (%)": 104.06
+    },
+    {
+      "Modelo": "Línea Base 2 (Naive Lag-7d)",
+      "Semana": "-",
+      "Train RMSE": "-",
+      "Test RMSE": 5.6,
+      "Test MAE": 3.45,
+      "Test R²": 0.88,
+      "Test MAPE (%)": 18.85
+    },
+    {
+      "Modelo": "Ridge Regression",
+      "Semana": "Sem. 13",
+      "Train RMSE": 3.82,
+      "Test RMSE": 4.7,
+      "Test MAE": 2.96,
+      "Test R²": 0.916,
+      "Test MAPE (%)": 19.26
+    },
+    {
+      "Modelo": "Random Forest Regressor",
+      "Semana": "Sem. 14",
+      "Train RMSE": 2.45,
+      "Test RMSE": 4.76,
+      "Test MAE": 2.89,
+      "Test R²": 0.914,
+      "Test MAPE (%)": 15.85
+    },
+    {
+      "Modelo": "Gradient Boosting Regressor",
+      "Semana": "Sem. 14",
+      "Train RMSE": 2.54,
+      "Test RMSE": 4.48,
+      "Test MAE": 2.72,
+      "Test R²": 0.923,
+      "Test MAPE (%)": 15.63
+    }
+  ]
+}
