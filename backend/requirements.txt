@@ -4,6 +4,7 @@
 flask>=3.0.0
 flask-cors>=4.0.0
 python-dotenv>=1.0.0
+gunicorn>=21.2.0
 
 # Librerías de Machine Learning y Análisis de Datos (Eje Central U3 / APF3)
 scikit-learn>=1.4.0
