@@ -37,8 +37,12 @@ MODEL_PATH = os.path.join(BASE_DIR, "modelo_demanda_3a.joblib")
 METRICS_PATH = os.path.join(BASE_DIR, "metricas_modelos.json")
 ERRORS_PATH = os.path.join(BASE_DIR, "analisis_errores.json")
 
-# Conexión a Supabase
-DB_URI = os.getenv("DATABASE_URL", "postgresql://postgres:shTEgJDJSqDGpqG5@db.uqkkjfsuvjwyyixcubmt.supabase.co:5432/postgres")
+# Conexión a Supabase (Usa el Pooler IPv4 para compatibilidad total con Render Free Tier)
+DEFAULT_DB_URI = "postgresql://postgres.uqkkjfsuvjwyyixcubmt:shTEgJDJSqDGpqG5@aws-0-us-east-1.pooler.supabase.com:6543/postgres"
+DB_URI = os.getenv("DATABASE_URL", DEFAULT_DB_URI)
+# Si Render tiene configurada la URL antigua directa db.* que falla por IPv6, redirigir al pooler IPv4
+if "db.uqkkjfsuvjwyyixcubmt.supabase.co" in DB_URI:
+    DB_URI = DEFAULT_DB_URI
 
 # Cargar el modelo serializado de Scikit-Learn
 print(f"[BOOT] Cargando modelo serializado desde: {MODEL_PATH}")
