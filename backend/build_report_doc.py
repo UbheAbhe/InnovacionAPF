@@ -891,6 +891,162 @@ Decisión Logística:                     Si stock actual &lt;= 54.5 kg -&gt; Em
   </tbody>
 </table>
 
+<h1>ANEXO B: Trazabilidad de Repositorios, Código Fuente y Entornos Cloud Desplegados</h1>
+<p>En cumplimiento del numeral 6 de las Condiciones de Evaluación y de la Sección 8 de la consigna, se registran los accesos directos y públicos a los entornos cloud y código fuente del proyecto:</p>
+<ol>
+  <li><strong>Repositorio GitHub Oficial del Proyecto:</strong> <a href="https://github.com/julio060606/InnovacionAPF3">https://github.com/julio060606/InnovacionAPF3</a> (código fuente completo, modelo serializado .joblib, microservicio Flask, frontend React/Vite y scripts de persistencia).</li>
+  <li><strong>Repositorio Espejo de Respaldo:</strong> <a href="https://github.com/JesusDamian899/InnovacionAPF3">https://github.com/JesusDamian899/InnovacionAPF3</a></li>
+  <li><strong>Jupyter Notebook Ejecutado de Machine Learning (.ipynb):</strong> Ruta en repositorio: <code>backend/APF3_TD_Grupo_ML_Innovacion.ipynb</code>.</li>
+  <li><strong>Microservicio REST API de Inferencia (Render Cloud):</strong> Endpoint de verificación de salud (<em>Health Check</em>): <code>GET https://tiendas-3a-api.onrender.com/health</code>.</li>
+  <li><strong>Aplicación Web Progresiva del MVP (Vercel Cloud):</strong> Despliegue de producción accesible en navegador web y dispositivos móviles: <a href="https://innovacion-apf3.vercel.app">https://innovacion-apf3.vercel.app</a>.</li>
+</ol>
+
+<h1>ANEXO C: Evidencia de Integración y Pruebas del Microservicio (cURL / REST API)</h1>
+<p>Para comprobar la operatividad del contrato de integración fuera del navegador, se documentan las peticiones ejecutadas por cURL hacia el microservicio en Flask:</p>
+<div class="code-block"># 1. Petición de Verificación de Salud (Health Check)
+curl -X GET https://tiendas-3a-api.onrender.com/health
+
+# Respuesta JSON (HTTP 200 OK):
+{{
+  "status": "healthy",
+  "service": "api-inventario-inteligente-3a",
+  "model_loaded": true,
+  "model_algorithm": "GradientBoostingRegressor (scikit-learn 1.4+)",
+  "model_version": "2.0.0-apf3",
+  "database_connected": true,
+  "timestamp": "2026-11-14T10:15:00.000000"
+}}
+
+# 2. Petición de Inferencia en Tiempo Real
+curl -X POST https://tiendas-3a-api.onrender.com/api/predict \
+  -H "Content-Type: application/json" \
+  -d '{{"sku": "3A-FV-001", "producto_id": "fv-mandarina", "precio": 4.50, "costo": 3.10, "stock_actual": 12.0, "capacidad_gondola": 40.0, "pack_size": 10.0, "categoria_id": "fv", "lead_time_dias": 1, "lag_1d": 18.0, "lag_7d": 22.0, "media_movil_7d": 19.4, "std_movil_7d": 2.8, "dia_semana": 5, "es_fin_de_semana": 1, "es_quincena": 1, "nivel_servicio": 0.95}}'
+
+# Respuesta JSON del Modelo Ganador (Demanda, SS y ROP):
+{{
+  "sku": "3A-FV-001",
+  "producto_id": "fv-mandarina",
+  "demanda_predicha_dia": 24.94,
+  "demanda_predicha_semana": 174.58,
+  "stock_seguridad_ss": 4.61,
+  "punto_reorden_rop": 54.48,
+  "stock_actual": 12.0,
+  "dias_cobertura": 0.5,
+  "riesgo": "medio",
+  "estado_alerta": "EMITIR_ORDEN",
+  "requiere_orden": true,
+  "pedido_sugerido_bultos": 5,
+  "pedido_sugerido_unidades": 50.0,
+  "costo_pedido_estimado": 155.0,
+  "modelo": "GradientBoostingRegressor",
+  "mape_modelo": 15.63
+}}</div>
+
+<h1>ANEXO D: Esquema Relacional de Base de Datos en Supabase PostgreSQL (DDL)</h1>
+<p>El esquema implementado en Supabase (<code>backend/db/schema.sql</code>) normaliza las 6 tablas operativas del sistema bajo PostgreSQL 15+:</p>
+<div class="code-block">CREATE TABLE categorias (
+    id VARCHAR(10) PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL,
+    color VARCHAR(20) NOT NULL
+);
+
+CREATE TABLE productos (
+    id VARCHAR(50) PRIMARY KEY,
+    sku VARCHAR(20) UNIQUE NOT NULL,
+    nombre VARCHAR(100) NOT NULL,
+    categoria_id VARCHAR(10) REFERENCES categorias(id),
+    precio NUMERIC(10, 2) NOT NULL,
+    costo NUMERIC(10, 2) NOT NULL,
+    unidad VARCHAR(10) NOT NULL CHECK (unidad IN ('un', 'kg')),
+    pack_size INTEGER NOT NULL DEFAULT 1,
+    gondola_capacidad INTEGER NOT NULL,
+    lead_time_dias INTEGER NOT NULL DEFAULT 1
+);
+
+CREATE TABLE historial_ventas (
+    id BIGSERIAL PRIMARY KEY,
+    fecha DATE NOT NULL,
+    producto_id VARCHAR(50) REFERENCES productos(id),
+    unidades_vendidas NUMERIC(10, 2) NOT NULL,
+    ingresos_soles NUMERIC(10, 2) NOT NULL,
+    es_fin_de_semana BOOLEAN NOT NULL,
+    es_quincena BOOLEAN NOT NULL,
+    origen VARCHAR(20) NOT NULL DEFAULT 'simulado' CHECK (origen IN ('real', 'simulado')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    CONSTRAINT uq_fecha_producto UNIQUE (fecha, producto_id)
+);
+
+CREATE TABLE movimientos_kardex (
+    id VARCHAR(50) PRIMARY KEY,
+    ts BIGINT NOT NULL,
+    producto_id VARCHAR(50) REFERENCES productos(id),
+    tipo VARCHAR(20) NOT NULL CHECK (tipo IN ('venta', 'reposicion', 'merma', 'ajuste', 'entrada')),
+    cantidad INTEGER NOT NULL,
+    usuario VARCHAR(50) NOT NULL,
+    motivo VARCHAR(100),
+    monto NUMERIC(10, 2),
+    gondola_after INTEGER NOT NULL,
+    almacen_after INTEGER NOT NULL,
+    origen VARCHAR(20) NOT NULL DEFAULT 'real' CHECK (origen IN ('real', 'simulado')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE ordenes_compra (
+    id VARCHAR(50) PRIMARY KEY,
+    fecha_emision DATE NOT NULL,
+    producto_id VARCHAR(50) REFERENCES productos(id),
+    bultos_solicitados INTEGER NOT NULL,
+    unidades_totales NUMERIC(10, 2) NOT NULL,
+    costo_estimado NUMERIC(10, 2) NOT NULL,
+    estado VARCHAR(20) NOT NULL CHECK (estado IN ('sugerida', 'confirmada', 'en_camino', 'recibida', 'cancelada')),
+    origen_modelo VARCHAR(50) NOT NULL DEFAULT 'GradientBoostingRegressor',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE predicciones_ml (
+    id BIGSERIAL PRIMARY KEY,
+    fecha_prediccion TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    producto_id VARCHAR(50) REFERENCES productos(id),
+    fecha_objetivo DATE NOT NULL,
+    demanda_predicha NUMERIC(10, 2) NOT NULL,
+    stock_seguridad NUMERIC(10, 2) NOT NULL,
+    punto_reorden NUMERIC(10, 2) NOT NULL,
+    nivel_riesgo VARCHAR(20) NOT NULL CHECK (nivel_riesgo IN ('bajo', 'medio', 'alto', 'critico')),
+    modelo_utilizado VARCHAR(50) NOT NULL,
+    mape_modelo NUMERIC(5, 2) NOT NULL
+);</div>
+
+<h1>ANEXO E: Muestra y Auditoría de Integridad del Dataset Oficial (dataset_ventas_3a.csv)</h1>
+<p>Muestra de las 15 columnas del dataset oficial alojado en Supabase con la columna obligatoria <code>origen = 'simulado'</code>:</p>
+<table>
+  <thead>
+    <tr>
+      <th>fecha</th>
+      <th>sku</th>
+      <th>producto_nombre</th>
+      <th>cat</th>
+      <th>precio</th>
+      <th>costo</th>
+      <th>unid</th>
+      <th>unidades_vendidas</th>
+      <th>ingresos</th>
+      <th>fds</th>
+      <th>quin</th>
+      <th>origen</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>2026-08-11</td><td>3A-ABA-015</td><td>Aceite Primor Clásico 900 ml</td><td>aba</td><td>S/ 8.50</td><td>S/ 6.80</td><td>un</td><td>14.00</td><td>S/ 119.00</td><td>False</td><td>False</td><td><strong>simulado</strong></td></tr>
+    <tr><td>2026-08-11</td><td>3A-ABA-014</td><td>Arroz Costeño Extra 1 kg</td><td>aba</td><td>S/ 4.80</td><td>S/ 3.90</td><td>un</td><td>28.00</td><td>S/ 134.40</td><td>False</td><td>False</td><td><strong>simulado</strong></td></tr>
+    <tr><td>2026-08-11</td><td>3A-ABA-018</td><td>Filete de Atún Fanny 170 g</td><td>aba</td><td>S/ 5.90</td><td>S/ 4.60</td><td>un</td><td>11.00</td><td>S/ 64.90</td><td>False</td><td>False</td><td><strong>simulado</strong></td></tr>
+    <tr><td>2026-08-11</td><td>3A-ABA-016</td><td>Azúcar Rubia Cartavio 1 kg</td><td>aba</td><td>S/ 4.20</td><td>S/ 3.30</td><td>un</td><td>21.00</td><td>S/ 88.20</td><td>False</td><td>False</td><td><strong>simulado</strong></td></tr>
+    <tr><td>2026-08-11</td><td>3A-BEB-020</td><td>Agua San Luis sin gas 625 ml</td><td>beb</td><td>S/ 1.50</td><td>S/ 0.90</td><td>un</td><td>42.00</td><td>S/ 63.00</td><td>False</td><td>False</td><td><strong>simulado</strong></td></tr>
+    <tr><td>2026-08-11</td><td>3A-FV-001</td><td>Mandarina Clementina (kg)</td><td>fv</td><td>S/ 4.50</td><td>S/ 3.10</td><td>kg</td><td>18.00</td><td>S/ 81.00</td><td>False</td><td>False</td><td><strong>simulado</strong></td></tr>
+    <tr><td>2026-08-11</td><td>3A-LAC-007</td><td>Leche Gloria UHT Entera 1 L</td><td>lac</td><td>S/ 5.20</td><td>S/ 4.10</td><td>un</td><td>24.00</td><td>S/ 124.80</td><td>False</td><td>False</td><td><strong>simulado</strong></td></tr>
+  </tbody>
+</table>
+<p><strong>Resumen de Auditoría Automatizada:</strong> Filas totales = 2,970 | Filas rotuladas con <code>origen = 'simulado'</code> = 2,970 (100 %) | Valores nulos = 0 | Duplicados = 0 | Precios &le; 0: 0 | Demandas &lt; 0: 0 | Consistencia matemática ingresos: 100 % verificada.</p>
+
 </body>
 </html>
 """

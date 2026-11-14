@@ -446,3 +446,205 @@ De conformidad con el numeral 7 de las Condiciones de Evaluación y la tabla de 
 | **2** | **Pipeline de Preprocesamiento y Prevención de *Data Leakage* (Paso 2 y 3)** | *"Construye en `train_model.py` el pipeline de scikit-learn para predecir `unidades_vendidas` usando partición cronológica, `ColumnTransformer` (`StandardScaler` + `OneHotEncoder`) y variables de rezago (`lag_1d`, `lag_7d`, `media_movil_7d`, `std_movil_7d`) cuidando que no exista fuga de datos del target."* | Código del `ColumnTransformer` y cálculo de medias móviles por producto. | **Validación Humana (Jardiel Damian):** Se auditó línea por línea la función `transform()` de las ventanas móviles para asegurar que incluyera `.shift(1)` antes de `.rolling(7).mean()` y `.rolling(7).std()`, impidiendo que la venta del día actual se filtrara en el promedio móvil. Se verificó además la exclusión de `ingresos_soles` de la matriz $X$. |
 | **3** | **Entrenamiento, `GridSearchCV` y Auditoría de Errores (Paso 3 y 4)** | *"Entrena y compara `DummyRegressor`, pronóstico ingenuo `lag_7d`, `Ridge`, `RandomForestRegressor` y `GradientBoostingRegressor` con `random_state=42` y `TimeSeriesSplit`, exportando el mejor modelo en `.joblib`, extrayendo `feature_importances_` y los 3 mayores residuos del conjunto de prueba."* | Código de entrenamiento, tabla comparativa de métricas (`RMSE`, `MAE`, `R²`, `MAPE`), gráfico de importancia de variables y exportación JSON. | **Validación Humana (Julio Minaya & Orestes Moran):** Se ejecutó el script y el notebook `.ipynb` de inicio a fin en un entorno limpio verificando que ambos arrojen exactamente los mismos valores (`Test RMSE = 4.48`, `MAPE = 15.63%`, `R² = 0.923`). Se revisaron manualmente las fechas de los 3 casos de mayor error (`2026-10-31`, `2026-11-08`, `2026-10-24`) contrastándolas con el calendario comercial peruano (Día de la Canción Criolla y fin de mes). |
 | **4** | **Microservicio Flask e Integración con el MVP React (Paso 4 / 6.3)** | *"Crea un endpoint `POST /api/predict` en Flask que cargue `modelo_demanda_3a.joblib`, reciba un JSON desde el MVP en React y devuelva la demanda predicha junto con el Stock de Seguridad ($z=1.645$), el Punto de Reorden (ROP) y un modal interactivo con selector de los 33 SKUs."* | Implementación de `backend/app.py`, `src/services/apiClient.ts` y `MLInferenceDialog.tsx`. | **Validación Humana (Grace Campos & Julio Minaya):** Se validó manualmente la fórmula matemática del Stock de Seguridad ($SS = z \cdot \sigma \cdot \sqrt{L}$) y del Punto de Reorden ($ROP = \hat{y}(L+1) + SS$), probando la respuesta del endpoint con `cURL` y desde el modal del navegador, además de configurar el *fallback* local ante el *cold start* de Render. |
+
+
+---
+
+## ANEXO B: Trazabilidad de Repositorios, Código Fuente y Entornos Cloud Desplegados
+
+En cumplimiento del numeral 6 de las Condiciones de Evaluación y de la Sección 8 de la consigna, se registran los accesos directos y públicos a los entornos cloud y código fuente del proyecto:
+
+1. **Repositorio GitHub Oficial del Proyecto:**  
+   [https://github.com/julio060606/InnovacionAPF3](https://github.com/julio060606/InnovacionAPF3)  
+   *Contiene el código fuente completo, el microservicio Flask, el modelo serializado `.joblib`, el frontend React/Vite, las migraciones SQL y la documentación.*
+
+2. **Repositorio Espejo de Respaldo:**  
+   [https://github.com/JesusDamian899/InnovacionAPF3](https://github.com/JesusDamian899/InnovacionAPF3)  
+
+3. **Jupyter Notebook Ejecutado de Machine Learning (`.ipynb`):**  
+   Ruta en repositorio: `backend/APF3_TD_Grupo_ML_Innovacion.ipynb`  
+   [Enlace directo en GitHub](https://github.com/julio060606/InnovacionAPF3/blob/master/backend/APF3_TD_Grupo_ML_Innovacion.ipynb)
+
+4. **Microservicio REST API de Inferencia (Render Cloud):**  
+   Endpoint de verificación de salud (*Health Check*):  
+   `GET https://tiendas-3a-api.onrender.com/health` (o puerto local 5000 en demostración presencial).
+
+5. **Aplicación Web Progresiva del MVP (Vercel Cloud):**  
+   Despliegue de producción accesible en navegador web y dispositivos móviles:  
+   [https://innovacion-apf3.vercel.app](https://innovacion-apf3.vercel.app) (o URL generada por el entorno Vercel).
+
+---
+
+## ANEXO C: Evidencia de Integración y Pruebas del Microservicio (cURL / REST API)
+
+Para comprobar la operatividad del contrato de integración fuera del navegador, se documentan las peticiones ejecutadas por cURL hacia el microservicio en Flask:
+
+### 1. Petición de Verificación de Salud (Health Check)
+```bash
+curl -X GET https://tiendas-3a-api.onrender.com/health
+```
+**Respuesta JSON esperada (HTTP 200 OK):**
+```json
+{
+  "status": "healthy",
+  "service": "api-inventario-inteligente-3a",
+  "model_loaded": true,
+  "model_algorithm": "GradientBoostingRegressor (scikit-learn 1.4+)",
+  "model_version": "2.0.0-apf3",
+  "database_connected": true,
+  "timestamp": "2026-11-14T10:15:00.000000"
+}
+```
+
+### 2. Petición de Inferencia en Tiempo Real (Predicción de Demanda y ROP)
+```bash
+curl -X POST https://tiendas-3a-api.onrender.com/api/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "sku": "3A-FV-001",
+    "producto_id": "fv-mandarina",
+    "precio": 4.50,
+    "costo": 3.10,
+    "stock_actual": 12.0,
+    "capacidad_gondola": 40.0,
+    "pack_size": 10.0,
+    "categoria_id": "fv",
+    "lead_time_dias": 1,
+    "lag_1d": 18.0,
+    "lag_7d": 22.0,
+    "media_movil_7d": 19.4,
+    "std_movil_7d": 2.8,
+    "dia_semana": 5,
+    "es_fin_de_semana": 1,
+    "es_quincena": 1,
+    "nivel_servicio": 0.95
+  }'
+```
+**Respuesta JSON del Modelo Ganador:**
+```json
+{
+  "sku": "3A-FV-001",
+  "producto_id": "fv-mandarina",
+  "demanda_predicha_dia": 24.94,
+  "demanda_predicha_semana": 174.58,
+  "stock_seguridad_ss": 4.61,
+  "punto_reorden_rop": 54.48,
+  "stock_actual": 12.0,
+  "dias_cobertura": 0.5,
+  "riesgo": "medio",
+  "estado_alerta": "EMITIR_ORDEN",
+  "requiere_orden": true,
+  "pedido_sugerido_bultos": 5,
+  "pedido_sugerido_unidades": 50.0,
+  "costo_pedido_estimado": 155.0,
+  "modelo": "GradientBoostingRegressor",
+  "mape_modelo": 15.63,
+  "timestamp": "2026-11-14T10:15:02.124800"
+}
+```
+
+---
+
+## ANEXO D: Esquema Relacional de Base de Datos en Supabase PostgreSQL (DDL)
+
+El esquema implementado en Supabase (`backend/db/schema.sql`) normaliza las 6 tablas operativas del sistema bajo PostgreSQL 15+:
+
+```sql
+-- Tablas principales en Supabase PostgreSQL
+CREATE TABLE IF NOT EXISTS categorias (
+    id VARCHAR(10) PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL,
+    color VARCHAR(20) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS productos (
+    id VARCHAR(50) PRIMARY KEY,
+    sku VARCHAR(20) UNIQUE NOT NULL,
+    nombre VARCHAR(100) NOT NULL,
+    categoria_id VARCHAR(10) REFERENCES categorias(id),
+    precio NUMERIC(10, 2) NOT NULL,
+    costo NUMERIC(10, 2) NOT NULL,
+    unidad VARCHAR(10) NOT NULL CHECK (unidad IN ('un', 'kg')),
+    pack_size INTEGER NOT NULL DEFAULT 1,
+    gondola_capacidad INTEGER NOT NULL,
+    lead_time_dias INTEGER NOT NULL DEFAULT 1
+);
+
+CREATE TABLE IF NOT EXISTS historial_ventas (
+    id BIGSERIAL PRIMARY KEY,
+    fecha DATE NOT NULL,
+    producto_id VARCHAR(50) REFERENCES productos(id),
+    unidades_vendidas NUMERIC(10, 2) NOT NULL,
+    ingresos_soles NUMERIC(10, 2) NOT NULL,
+    es_fin_de_semana BOOLEAN NOT NULL,
+    es_quincena BOOLEAN NOT NULL,
+    origen VARCHAR(20) NOT NULL DEFAULT 'simulado' CHECK (origen IN ('real', 'simulado')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    CONSTRAINT uq_fecha_producto UNIQUE (fecha, producto_id)
+);
+
+CREATE TABLE IF NOT EXISTS movimientos_kardex (
+    id VARCHAR(50) PRIMARY KEY,
+    ts BIGINT NOT NULL,
+    producto_id VARCHAR(50) REFERENCES productos(id),
+    tipo VARCHAR(20) NOT NULL CHECK (tipo IN ('venta', 'reposicion', 'merma', 'ajuste', 'entrada')),
+    cantidad INTEGER NOT NULL,
+    usuario VARCHAR(50) NOT NULL,
+    motivo VARCHAR(100),
+    monto NUMERIC(10, 2),
+    gondola_after INTEGER NOT NULL,
+    almacen_after INTEGER NOT NULL,
+    origen VARCHAR(20) NOT NULL DEFAULT 'real' CHECK (origen IN ('real', 'simulado')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS ordenes_compra (
+    id VARCHAR(50) PRIMARY KEY,
+    fecha_emision DATE NOT NULL,
+    producto_id VARCHAR(50) REFERENCES productos(id),
+    bultos_solicitados INTEGER NOT NULL,
+    unidades_totales NUMERIC(10, 2) NOT NULL,
+    costo_estimado NUMERIC(10, 2) NOT NULL,
+    estado VARCHAR(20) NOT NULL CHECK (estado IN ('sugerida', 'confirmada', 'en_camino', 'recibida', 'cancelada')),
+    origen_modelo VARCHAR(50) NOT NULL DEFAULT 'GradientBoostingRegressor',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS predicciones_ml (
+    id BIGSERIAL PRIMARY KEY,
+    fecha_prediccion TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    producto_id VARCHAR(50) REFERENCES productos(id),
+    fecha_objetivo DATE NOT NULL,
+    demanda_predicha NUMERIC(10, 2) NOT NULL,
+    stock_seguridad NUMERIC(10, 2) NOT NULL,
+    punto_reorden NUMERIC(10, 2) NOT NULL,
+    nivel_riesgo VARCHAR(20) NOT NULL CHECK (nivel_riesgo IN ('bajo', 'medio', 'alto', 'critico')),
+    modelo_utilizado VARCHAR(50) NOT NULL,
+    mape_modelo NUMERIC(5, 2) NOT NULL
+);
+```
+
+---
+
+## ANEXO E: Muestra y Auditoría de Integridad del Dataset Oficial (`dataset_ventas_3a.csv`)
+
+A continuación se exhiben los primeros registros del dataset oficial con las 15 columnas normalizadas, evidenciando el cumplimiento de la columna obligatoria `origen = 'simulado'`:
+
+| fecha | producto_id | sku | producto_nombre | categoria_id | categoria_nombre | precio | costo | unidad | unidades_vendidas | ingresos_soles | dia_semana | es_fin_de_semana | es_quincena | origen |
+| :---: | :---: | :---: | :--- | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| 2026-08-11 | aba-aceite-primor | 3A-ABA-015 | Aceite Primor Clásico 900 ml | aba | Abarrotes | 8.50 | 6.80 | un | 14.00 | 119.00 | 1 | False | False | **simulado** |
+| 2026-08-11 | aba-arroz-costeno | 3A-ABA-014 | Arroz Costeño Extra 1 kg | aba | Abarrotes | 4.80 | 3.90 | un | 28.00 | 134.40 | 1 | False | False | **simulado** |
+| 2026-08-11 | aba-atun-fanny | 3A-ABA-018 | Filete de Atún Fanny 170 g | aba | Abarrotes | 5.90 | 4.60 | un | 11.00 | 64.90 | 1 | False | False | **simulado** |
+| 2026-08-11 | aba-azucar-cartavio | 3A-ABA-016 | Azúcar Rubia Cartavio 1 kg | aba | Abarrotes | 4.20 | 3.30 | un | 21.00 | 88.20 | 1 | False | False | **simulado** |
+| 2026-08-11 | aba-fideos-don-vittorio | 3A-ABA-017 | Fideos Spaghetti Don Vittorio 450 g | aba | Abarrotes | 3.20 | 2.50 | un | 16.00 | 51.20 | 1 | False | False | **simulado** |
+| 2026-08-11 | beb-agua-san-luis | 3A-BEB-020 | Agua San Luis sin gas 625 ml | beb | Bebidas | 1.50 | 0.90 | un | 42.00 | 63.00 | 1 | False | False | **simulado** |
+| 2026-08-11 | fv-mandarina | 3A-FV-001 | Mandarina Clementina (kg) | fv | Frutas y verduras | 4.50 | 3.10 | kg | 18.00 | 81.00 | 1 | False | False | **simulado** |
+| 2026-08-11 | lac-leche-gloria-uht | 3A-LAC-007 | Leche Gloria UHT Entera 1 L | lac | Lácteos y huevos | 5.20 | 4.10 | un | 24.00 | 124.80 | 1 | False | False | **simulado** |
+
+*Resumen de Auditoría Automatizada:*  
+- Filas totales: 2,970  
+- Filas con `origen = 'simulado'`: 2,970 (100 %)  
+- Valores nulos o vacíos: 0  
+- Duplicados en llave `(fecha, producto_id)`: 0  
+- Violaciones de precio o costo $\le 0$: 0  
+- Violaciones de demanda negativa: 0  
