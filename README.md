@@ -148,25 +148,29 @@ La aplicación abrirá en: **`http://localhost:3000`** (o el puerto indicado por
 ```bash
 curl -X POST http://localhost:5000/api/predict \
   -H "Content-Type: application/json" \
-  -d "{\"producto_id\": \"lec-glo-1l\", \"fecha\": \"2026-11-10\", \"precio_unitario\": 4.80, \"stock_actual\": 18}"
+  -d "{\"sku\": \"3A-FV-001\", \"producto_id\": \"fv-mandarina\", \"precio\": 4.50, \"costo\": 3.10, \"stock_actual\": 12.0, \"pack_size\": 10.0, \"categoria_id\": \"fv\", \"lead_time_dias\": 1, \"lag_1d\": 18.0, \"lag_7d\": 22.0, \"media_movil_7d\": 19.4, \"std_movil_7d\": 2.8, \"dia_semana\": 5, \"es_fin_de_semana\": 1, \"es_quincena\": 1, \"nivel_servicio\": 0.95}"
 ```
 
 Respuesta JSON esperada:
 ```json
 {
-  "producto_id": "lec-glo-1l",
-  "producto_nombre": "Leche Gloria UHT Entera 1 L",
-  "categoria_id": "lacteos",
-  "prediccion_unidades": 45.2,
-  "intervalo_confianza_80": [38.5, 51.9],
-  "consumo_esperado": 45.2,
-  "stock_seguridad_sugerido": 12,
-  "punto_reorden_sugerido": 58,
-  "pedido_sugerido_bultos": 2,
-  "probabilidad_quiebre": 0.35,
-  "nivel_riesgo": "alto",
-  "modelo_usado": "GradientBoostingRegressor (scikit-learn 1.4+)",
-  "metricas_validacion": { "R2": 0.923, "MAPE": 15.63 }
+  "sku": "3A-FV-001",
+  "producto_id": "fv-mandarina",
+  "demanda_predicha_dia": 24.94,
+  "demanda_predicha_semana": 174.58,
+  "stock_seguridad_ss": 4.61,
+  "punto_reorden_rop": 54.49,
+  "stock_actual": 12.0,
+  "dias_cobertura": 0.5,
+  "riesgo": "medio",
+  "estado_alerta": "EMITIR_ORDEN",
+  "requiere_orden": true,
+  "pedido_sugerido_bultos": 22,
+  "pedido_sugerido_unidades": 220.0,
+  "costo_pedido_estimado": 682.0,
+  "modelo": "GradientBoostingRegressor",
+  "mape_modelo": 15.63,
+  "timestamp": "2026-11-13T21:45:00.000000"
 }
 ```
 

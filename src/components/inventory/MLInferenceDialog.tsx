@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BrainCircuit, CheckCircle2, Sparkles, Loader2 } from 'lucide-react';
+import { BrainCircuit, CheckCircle2, Sparkles, Loader2, RefreshCw } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/components/ui/Toast';
 import { predictWithML, type MLPredictionResponse } from '@/services/apiClient';
@@ -12,11 +12,12 @@ export function MLInferenceButton() {
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isWaking, setIsWaking] = useState(false);
+  const [selectedProdId, setSelectedProdId] = useState<string>('fv-mandarina');
   const [result, setResult] = useState<MLPredictionResponse | null>(null);
 
-  const runInference = async () => {
+  const runInferenceForProduct = async (prodId: string) => {
     if (!state) return;
-    const p = state.products.find((prod) => prod.id === 'fv-mandarina') || state.products[0];
+    const p = state.products.find((prod) => prod.id === prodId) || state.products[0];
     if (!p) return;
 
     setLoading(true);
@@ -55,7 +56,7 @@ export function MLInferenceButton() {
     if (data) {
       setResult(data);
       setModalOpen(true);
-      toast('Inferencia recibida exitosamente desde API en Python (Gradient Boosting).', 'info');
+      toast(`Inferencia recibida para ${p.name} (Gradient Boosting).`, 'info');
     } else {
       toast('El backend de Render aún no respondió. Operando con el motor reactivo local.', 'warning');
     }
@@ -64,7 +65,7 @@ export function MLInferenceButton() {
   return (
     <>
       <button
-        onClick={runInference}
+        onClick={() => runInferenceForProduct(selectedProdId)}
         disabled={loading}
         className="btn-outline flex items-center gap-1.5 border-emerald-600/30 text-emerald-800 hover:bg-emerald-50"
         title="Ejecutar inferencia real con el modelo serializado en Python (.joblib)"
@@ -92,6 +93,40 @@ export function MLInferenceButton() {
           width="sm:max-w-xl"
         >
           <div className="space-y-4 px-5 py-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+              <div className="flex-1">
+                <label htmlFor="ml-product-select" className="block text-[11px] font-semibold uppercase tracking-wider text-muted mb-1">
+                  Seleccionar SKU a consultar en vivo (33 productos)
+                </label>
+                <select
+                  id="ml-product-select"
+                  value={selectedProdId}
+                  onChange={(e) => {
+                    const nextId = e.target.value;
+                    setSelectedProdId(nextId);
+                    runInferenceForProduct(nextId);
+                  }}
+                  disabled={loading}
+                  className="input h-9 w-full text-xs font-medium"
+                >
+                  {state?.products.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.sku} — {p.name} (Stock: {p.stockGondola + p.stockAlmacen} {p.unit})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button
+                type="button"
+                onClick={() => runInferenceForProduct(selectedProdId)}
+                disabled={loading}
+                className="btn-outline h-9 text-xs shrink-0"
+              >
+                {loading ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+                Recalcular
+              </button>
+            </div>
+
             <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -114,11 +149,11 @@ export function MLInferenceButton() {
                 </div>
                 <div className="rounded-lg bg-white p-2.5 shadow-sm border border-emerald-100">
                   <div className="text-muted">Stock seguridad (SS)</div>
-                  <div className="num text-base font-bold text-ink">{result.stock_seguridad_ss} un</div>
+                  <div className="num text-base font-bold text-ink">{result.stock_seguridad_ss} {productById?.[result.producto_id]?.unit || 'un'}</div>
                 </div>
                 <div className="rounded-lg bg-white p-2.5 shadow-sm border border-emerald-100">
                   <div className="text-muted">Punto reorden (ROP)</div>
-                  <div className="num text-base font-bold text-ink">{result.punto_reorden_rop} un</div>
+                  <div className="num text-base font-bold text-ink">{result.punto_reorden_rop} {productById?.[result.producto_id]?.unit || 'un'}</div>
                 </div>
                 <div className="rounded-lg bg-white p-2.5 shadow-sm border border-emerald-100">
                   <div className="text-muted">Riesgo calculado</div>
@@ -137,7 +172,7 @@ export function MLInferenceButton() {
               </div>
               <div className="flex justify-between py-1 border-b border-border/50">
                 <span className="text-muted">Pedido sugerido al proveedor:</span>
-                <span className="font-bold text-emerald-800">{result.pedido_sugerido_bultos} bultos ({result.pedido_sugerido_unidades} un.)</span>
+                <span className="font-bold text-emerald-800">{result.pedido_sugerido_bultos} bultos ({result.pedido_sugerido_unidades} {productById?.[result.producto_id]?.unit || 'un'})</span>
               </div>
               <div className="flex justify-between py-1 border-b border-border/50">
                 <span className="text-muted">Costo estimado de reposición:</span>

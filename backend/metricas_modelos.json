@@ -1,5 +1,5 @@
 {
-  "fecha_entrenamiento": "2026-11-09T20:22:48.240475",
+  "fecha_entrenamiento": "2026-11-13T21:48:06.318704",
   "target": "unidades_vendidas_diarias",
   "meta_negocio": "MAPE <= 16.0%",
   "modelo_seleccionado": "Gradient Boosting Regressor",
@@ -49,5 +49,108 @@
       "Test R²": 0.923,
       "Test MAPE (%)": 15.63
     }
-  ]
+  ],
+  "importancia_variables": [
+    {
+      "variable": "lag_7d",
+      "importancia": 0.4761,
+      "importancia_pct": 47.61,
+      "coef_ridge": 4.727
+    },
+    {
+      "variable": "media_movil_7d",
+      "importancia": 0.4508,
+      "importancia_pct": 45.08,
+      "coef_ridge": 7.1573
+    },
+    {
+      "variable": "lag_1d",
+      "importancia": 0.023,
+      "importancia_pct": 2.3,
+      "coef_ridge": 0.9291
+    },
+    {
+      "variable": "dia_semana",
+      "importancia": 0.0185,
+      "importancia_pct": 1.85,
+      "coef_ridge": 0.1251
+    },
+    {
+      "variable": "es_fin_de_semana",
+      "importancia": 0.01,
+      "importancia_pct": 1.0,
+      "coef_ridge": 1.1376
+    },
+    {
+      "variable": "std_movil_7d",
+      "importancia": 0.0091,
+      "importancia_pct": 0.91,
+      "coef_ridge": -0.4858
+    },
+    {
+      "variable": "es_quincena",
+      "importancia": 0.0046,
+      "importancia_pct": 0.46,
+      "coef_ridge": 0.7417
+    },
+    {
+      "variable": "costo",
+      "importancia": 0.0036,
+      "importancia_pct": 0.36,
+      "coef_ridge": 1.4928
+    },
+    {
+      "variable": "categoria_id_beb",
+      "importancia": 0.0021,
+      "importancia_pct": 0.21,
+      "coef_ridge": 0.8099
+    },
+    {
+      "variable": "precio",
+      "importancia": 0.0015,
+      "importancia_pct": 0.15,
+      "coef_ridge": -1.5149
+    }
+  ],
+  "auditoria_coherencia": {
+    "total_filas": 2970,
+    "skus_unicos": 33,
+    "categorias_unicas": 7,
+    "rango_fechas": [
+      "2026-08-11",
+      "2026-11-08"
+    ],
+    "rotulado_origen": {
+      "simulado": 2970
+    },
+    "nulos_iniciales": 0,
+    "duplicados_fecha_producto": 0,
+    "violaciones_rango": {
+      "precios_no_positivos": 0,
+      "costos_no_positivos": 0,
+      "precio_menor_a_costo": 0,
+      "unidades_negativas": 0,
+      "inconsistencias_ingresos": 0,
+      "unidades_homogeneas_un_kg": true
+    },
+    "consistencia_temporal_ordenada": true,
+    "relaciones_negocio": {
+      "media_fin_de_semana": 20.33,
+      "media_dias_semana": 15.72,
+      "factor_incremento_fds": 1.294,
+      "media_quincena": 19.84,
+      "media_no_quincena": 17.32,
+      "factor_incremento_quincena": 1.145
+    },
+    "estadisticos_target": {
+      "media": 17.72,
+      "std": 13.75,
+      "min": 2.0,
+      "q25": 7.33,
+      "mediana": 14.0,
+      "q75": 23.0,
+      "max": 103.0,
+      "outliers_iqr_conservados": 58
+    }
+  }
 }
