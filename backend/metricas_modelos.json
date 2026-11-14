@@ -1,5 +1,5 @@
 {
-  "fecha_entrenamiento": "2026-11-13T21:48:06.318704",
+  "fecha_entrenamiento": "2026-11-13T22:48:52.793836",
   "target": "unidades_vendidas_diarias",
   "meta_negocio": "MAPE <= 16.0%",
   "modelo_seleccionado": "Gradient Boosting Regressor",
